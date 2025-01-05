@@ -23,10 +23,21 @@ export default {
           "0%": { transform: "translateY(100%)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
         },
+        fadeInRightToLeft: {
+          "0%": {
+            opacity: "0",
+            transform: "translateX(10%)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateX(0)",
+          },
+        },
       },
       animation: {
         slideDown: "slideDown 0.5s ease-out",
         slideUp: "slideUp 0.5s ease-out",
+        fadeInRightToLeft: "fadeInRightToLeft 0.35s ease-out",
       },
     },
   },

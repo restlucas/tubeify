@@ -1,10 +1,10 @@
 "use client";
 
-import axios from "axios";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { setCookies } from "@/utils/cookies";
+import { spotifyService } from "@/services/spotifyServices";
+import axios from "axios";
 
 export default function SpotifyCallback() {
   const router = useRouter();
@@ -17,13 +17,13 @@ export default function SpotifyCallback() {
         const params = new URLSearchParams(search);
         const code = params.get("code");
 
-        const tokenResponse = await axios.post("/api/spotify", { code });
+        const accessToken = await spotifyService.getAccessToken(String(code));
 
         const userInfoResponse = await axios.get(
           "https://api.spotify.com/v1/me",
           {
             headers: {
-              Authorization: `Bearer ${tokenResponse.data.access_token}`,
+              Authorization: `Bearer ${accessToken}`,
             },
           }
         );
@@ -34,9 +34,7 @@ export default function SpotifyCallback() {
         localStorage.setItem("@spotify:name", userInfo.display_name);
         localStorage.setItem("@spotify:picture", userInfo.images[1].url);
 
-        await setCookies("spotify-token", tokenResponse.data.access_token, {
-          expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Expire in 7 days
-        });
+        await setCookies("spotify-token", accessToken);
 
         setIsLoading(false);
         await new Promise((resolve) => setTimeout(resolve, 2000));

@@ -3,6 +3,7 @@ import { Bree_Serif } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import Providers from "@/components/Providers";
 
 const breefSerif = Bree_Serif({
   variable: "--bree-serif",
@@ -27,7 +28,9 @@ export default function RootLayout({
       >
         <Header />
 
-        <main className="mx-4 flex-1">{children}</main>
+        <Providers>
+          <main className="mx-4 flex-1">{children}</main>
+        </Providers>
 
         <Footer />
       </body>

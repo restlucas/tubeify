@@ -1,9 +1,9 @@
 "use client";
 
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { setCookies } from "@/utils/cookies";
+import { youtubeService } from "@/services/youtubeServices";
 
 export default function YouTubeCallback() {
   const router = useRouter();
@@ -16,26 +16,24 @@ export default function YouTubeCallback() {
         const params = new URLSearchParams(search);
         const code = params.get("code");
 
-        const tokenResponse = await axios.post("/api/youtube", { code });
+        const accessToken = await youtubeService.getAccessToken(String(code));
 
-        const userInfoResponse = await axios.get(
-          "https://www.googleapis.com/oauth2/v3/userinfo",
-          {
-            headers: {
-              Authorization: `Bearer ${tokenResponse.data.access_token}`,
-            },
-          }
-        );
+        const userInfo = await youtubeService.getUserInfo(accessToken);
 
-        const userInfo = userInfoResponse.data;
+        // const userInfoResponse = await axios.get(
+        //   "https://www.googleapis.com/oauth2/v3/userinfo",
+        //   {
+        //     headers: {
+        //       Authorization: `Bearer ${accessToken}`,
+        //     },
+        //   }
+        // );
 
         localStorage.setItem("@youtube:id", userInfo.sub);
         localStorage.setItem("@youtube:name", userInfo.name);
         localStorage.setItem("@youtube:picture", userInfo.picture);
 
-        await setCookies("youtube-token", tokenResponse.data.access_token, {
-          expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Expire in 7 days
-        });
+        await setCookies("youtube-token", accessToken);
 
         setIsLoading(false);
         await new Promise((resolve) => setTimeout(resolve, 2000));

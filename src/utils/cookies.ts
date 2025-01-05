@@ -2,9 +2,10 @@
 
 import { cookies } from "next/headers";
 
-export const getCookies = async () => {
+export const getCookies = async (name: string) => {
   const cookieStore = await cookies();
-  return cookieStore.getAll();
+  const cookie = cookieStore.get(`@tubeify:${name}-token`);
+  return cookie ? cookie.value : null;
 };
 
 export const setCookies = async (
@@ -14,11 +15,22 @@ export const setCookies = async (
 ) => {
   const cookieStore = await cookies();
 
-  let cookieString = `${name}=${value}; path=/;`;
-  if (options?.expires) {
-    cookieString += ` expires=${options.expires.toUTCString()};`;
+  const cookieName = `@tubeify:${name}`;
+
+  let cookieString = `${cookieName}=${value}; path=/;`;
+
+  if (!options?.expires) {
+    const now = new Date();
+    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour em miliseconds
+    options = { expires: oneHourFromNow };
+  } else {
+    cookieString += `expires=${options.expires.toUTCString()};`;
   }
 
-  const cookieName = "@tubeify:" + name;
-  cookieStore.set(cookieName, cookieString);
+  console.log(cookieString);
+
+  cookieStore.set(cookieName, value, {
+    path: "/",
+    expires: options.expires,
+  });
 };

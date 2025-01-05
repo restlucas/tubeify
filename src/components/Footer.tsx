@@ -6,7 +6,8 @@ export function Footer() {
       <span className="text-sm text-[#383838]">
         developed by{" "}
         <Link
-          href=""
+          href="https://github.com/restlucas"
+          target="_blank"
           className="font-bold cursor-pointer duration-100 hover:underline hover:text-white"
         >
           restlucas
