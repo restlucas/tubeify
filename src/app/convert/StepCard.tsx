@@ -30,10 +30,10 @@ export function StepCard({
               className={`font-semibold text-white px-4 py-2 rounded ${
                 selectedPlaylists.length < 1
                   ? "disabled pointer-events-none bg-gray-500"
-                  : "bg-gradient-to-r from-violet-500 to-blue-500 "
+                  : "bg-gradient-to-r from-violet-500 to-blue-500"
               }`}
             >
-              Convert
+              Next
             </button>
           ) : (
             <button
