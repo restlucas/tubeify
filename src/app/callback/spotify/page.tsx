@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { setCookies } from "@/utils/cookies";
 import { spotifyService } from "@/services/spotifyServices";
 import axios from "axios";
+import { setSessionStorageWithExpiry } from "@/utils/sessionStorage";
 
 export default function SpotifyCallback() {
   const router = useRouter();
@@ -30,9 +31,17 @@ export default function SpotifyCallback() {
 
         const userInfo = userInfoResponse.data;
 
-        localStorage.setItem("@spotify:id", userInfo.id);
-        localStorage.setItem("@spotify:name", userInfo.display_name);
-        localStorage.setItem("@spotify:picture", userInfo.images[1].url);
+        // localStorage.setItem("@spotify:id", userInfo.id);
+        // localStorage.setItem("@spotify:name", userInfo.display_name);
+        // localStorage.setItem("@spotify:picture", userInfo.images[1].url);
+
+        setSessionStorageWithExpiry("@spotify:id", userInfo.sub, 1);
+        setSessionStorageWithExpiry("@spotify:name", userInfo.display_name, 1);
+        setSessionStorageWithExpiry(
+          "@spotify:picture",
+          userInfo.images[1].url,
+          1
+        );
 
         await setCookies("spotify-token", accessToken);
 

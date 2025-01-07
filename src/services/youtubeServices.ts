@@ -11,6 +11,12 @@ const CLIENT_ID = process.env.NEXT_PUBLIC_YOUTUBE_CLIENT_ID!;
 const CLIENT_SECRET = process.env.NEXT_PUBLIC_YOUTUBE_CLIENT_SECRET!;
 const REDIRECT_URI = process.env.NEXT_PUBLIC_YOUTUBE_REDIRECT_URI!;
 
+type CreatePlaylistResult = {
+  playlistName: string;
+  statusCode: number;
+  message: string;
+};
+
 export const youtubeService = {
   /**
    * Fetches user info after authentication.
@@ -142,7 +148,7 @@ export const youtubeService = {
       return { tracksItems };
     };
 
-    const results: [] = [];
+    const results: CreatePlaylistResult[] = [];
 
     for (const playlist of playlists) {
       const batchSize = 20;
@@ -182,75 +188,67 @@ export const youtubeService = {
         await sleep(2000);
       }
 
-      console.log(tracks);
-      return true;
+      if (tracks.length > 0) {
+        const createPlaylistResponse = await axios.post<{
+          id: string;
+        }>(
+          `${YOUTUBE_API_BASE}/playlists?part=snippet,status`,
+          {
+            snippet: {
+              title: playlist.name,
+              description: "Created using Tubeify",
+            },
+            status: {
+              privacyStatus: "public",
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${youtubeAccessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const youtubePlaylistId = createPlaylistResponse.data.id;
+
+        for (const trackId of tracks) {
+          await axios.post(
+            `${YOUTUBE_API_BASE}/playlistItems?part=snippet`,
+            {
+              snippet: {
+                playlistId: youtubePlaylistId,
+                resourceId: {
+                  kind: "youtube#video",
+                  videoId: trackId,
+                },
+              },
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${youtubeAccessToken}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, 750));
+        }
+
+        results.push({
+          playlistName: playlist.name,
+          statusCode: 201,
+          message: `Playlist "${playlist.name}" created with ${tracks.length} tracks.`,
+        });
+      } else {
+        results.push({
+          playlistName: playlist.name,
+          statusCode: 204,
+          message: `Playlist "${playlist.name}" created, but no tracks were found or added.`,
+        });
+      }
     }
 
     return results;
-
-    // Obter o nome da playlist do Spotify
-    const getSpotifyPlaylistName = async (playlistId: string) => {
-      const spotifyAccessToken = await getCookies("spotify");
-
-      const response = await axios.get(
-        `https://api.spotify.com/v1/playlists/${playlistId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${spotifyAccessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      return response.data.name; // Nome da playlist
-    };
-
-    // Criar a playlist no YouTube com o mesmo nome da playlist do Spotify
-    const playlistName = await getSpotifyPlaylistName(playlistIds[0].id);
-
-    const response = await axios.post(
-      `${YOUTUBE_API_BASE}/playlists?part=snippet,status`,
-      {
-        snippet: {
-          title: playlistName,
-          description: `Created by Tubeify`,
-        },
-        status: {
-          privacyStatus: "public",
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const playlistId = response.data.id;
-
-    // Adicionar músicas à playlist do YouTube
-    for (const track of allTracks) {
-      await axios.post(
-        `${YOUTUBE_API_BASE}/playlistItems?part=snippet`,
-        {
-          snippet: {
-            playlistId: playlistId,
-            resourceId: {
-              kind: "youtube#video",
-              videoId: track.videoId,
-            },
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    }
-
-    return response.data;
   },
 };

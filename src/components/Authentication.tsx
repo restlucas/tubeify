@@ -4,14 +4,14 @@ import { SpotifyLogo, YoutubeLogo } from "@phosphor-icons/react";
 import { Button } from "./Button";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { providers } from "@/app/page";
+import { getSessionStorageWithExpiry } from "@/utils/sessionStorage";
 
 interface Profile {
   provider_name: string | null;
   user_name: string | null;
   user_picture: string | null;
 }
-
-const providers = ["spotify", "youtube"];
 
 export function Authentication() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -23,8 +23,8 @@ export function Authentication() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       providers.map((provider) => {
-        const name = localStorage.getItem(`@${provider}:name`);
-        const picture = localStorage.getItem(`@${provider}:picture`);
+        const name = getSessionStorageWithExpiry(`@${provider}:name`);
+        const picture = getSessionStorageWithExpiry(`@${provider}:picture`);
 
         if (name && picture) {
           setProfiles((prevState) => [

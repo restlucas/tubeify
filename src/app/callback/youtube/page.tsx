@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { setCookies } from "@/utils/cookies";
 import { youtubeService } from "@/services/youtubeServices";
+import { setSessionStorageWithExpiry } from "@/utils/sessionStorage";
 
 export default function YouTubeCallback() {
   const router = useRouter();
@@ -29,9 +30,9 @@ export default function YouTubeCallback() {
         //   }
         // );
 
-        localStorage.setItem("@youtube:id", userInfo.sub);
-        localStorage.setItem("@youtube:name", userInfo.name);
-        localStorage.setItem("@youtube:picture", userInfo.picture);
+        setSessionStorageWithExpiry("@youtube:id", userInfo.sub, 1);
+        setSessionStorageWithExpiry("@youtube:name", userInfo.name, 1);
+        setSessionStorageWithExpiry("@youtube:picture", userInfo.picture, 1);
 
         await setCookies("youtube-token", accessToken);
 
